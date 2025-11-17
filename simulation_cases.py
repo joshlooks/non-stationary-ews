@@ -4,11 +4,11 @@ import os
 from scipy.interpolate import interp1d
 import errno
 
-def gillespie_sir(N, beta_func, gamma, mu, initial_susceptible, initial_infected, max_time):
+def gillespie_sir(N, beta_func, gamma, mu, initial_susceptible, initial_infected, initial_recovered, max_time):
     # Initial conditions
     S = initial_susceptible
     I = initial_infected
-    R = N - S - I
+    R = initial_recovered
     
     # Arrays to store results
     times = np.zeros(N*3)
@@ -88,17 +88,41 @@ if sim_type == 'high':
     initial_infected = 0.005*N
     R_0 = 4
     beta_0 = R_0*(gamma+mu)
+    initial_recovered = N - initial_susceptible - initial_infected
 elif sim_type == 'low':
     initial_susceptible = 0.9*N
     initial_infected = 0.1*N
     beta_0 = 0.06
     R_0 = 0.06/(gamma+mu)
+    initial_recovered = N - initial_susceptible - initial_infected
 elif sim_type == 'highrand':
-    initial_susceptible, initial_infected, _ = np.random.multinomial(N,[0.4,0.005,1-0.4-0.005])
+    initial_susceptible, initial_infected, initial_recovered = np.random.multinomial(N,[0.4,0.005,1-0.4-0.005])
     R_0 = 4
     beta_0 = R_0*(gamma+mu)
 elif sim_type == 'lowrand':
-    initial_susceptible, initial_infected, _ = np.random.multinomial(N,[0.9,0.1,0])
+    initial_susceptible, initial_infected, initial_infected = np.random.multinomial(N,[0.9,0.1,0])
+    beta_0 = 0.06
+    R_0 = 0.06/(gamma+mu)
+elif sim_type == 'highnorm':
+    var = sys.argv[4]
+    if var == 'low':
+        cov = np.diag(N*np.array([0.1,0.1,0.1]))
+    elif var == 'med':
+        cov = np.diag(N*np.array([0.2,0.2,0.2]))
+    elif var == 'high':
+        cov = np.diag(N*np.array([0.3,0.3,0.3]))
+    initial_susceptible, initial_infected, initial_recovered = np.maximum([1,25,1],np.round(np.random.multivariate_normal(N*np.array([0.4,0.005,1-0.4-0.005]),cov)))
+    R_0 = 4
+    beta_0 = R_0*(gamma+mu)
+elif sim_type == 'lownorm':
+    var = sys.argv[4]
+    if var == 'low':
+        cov = np.diag(N*np.array([0.1,0.1,0.1]))
+    elif var == 'med':
+        cov = np.diag(N*np.array([0.2,0.2,0.2]))
+    elif var == 'high':
+        cov = np.diag(N*np.array([0.3,0.3,0.3]))
+    initial_susceptible, initial_infected, initial_recovered = np.maximum([1,1,0],np.round(np.random.multivariate_normal(N*np.array([0.9,0.1,0]),cov)))
     beta_0 = 0.06
     R_0 = 0.06/(gamma+mu)
 
@@ -108,14 +132,17 @@ script_dir = os.path.dirname(__file__)
 betat = lambda x: beta_0
 
 def sim():
-    return gillespie_sir(N, betat, gamma, mu, initial_susceptible, initial_infected, max_time)
+    return gillespie_sir(N, betat, gamma, mu, initial_susceptible, initial_infected, initial_recovered, max_time)
 
 res_dict = {}
 for i in range(100):
     res = sim()
     res_dict[i] = {'t':res[0],'s':res[1],'i':res[2],'r':res[3],'c':res[4]}
 
-results_dir = os.path.join(script_dir,sim_type,f'{N}')
+if 'norm' in sim_type:
+    results_dir = os.path.join(script_dir,sim_type,f'{N}',f'{var}')
+else: 
+    results_dir = os.path.join(script_dir,sim_type,f'{N}')
 try:
     os.makedirs(results_dir)
 except OSError as e:

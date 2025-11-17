@@ -9,4 +9,5 @@ Corresponding author email address: joshua.looker@warwick.ac.uk
 Code to reproduce phase-planes and theoretical variance evolution can be found in the `trajectory_jacobian_sir.ipynb` notebook.
 
 ## Simulation analysis
-Code to run the simulations can be found in `simulation_cases.py` and `sim.sbatch` (note that these were run on a high-performance computing cluster) and to produce the plots can be found in the `simulations.ipynb` notebooks.
+Code to run the simulations can be found in `simulation_cases.py` and `sim.sbatch` (note that these were run on a high-performance computing cluster) and to produce the plots can be found in the `simulations.ipynb` notebook.
+.npy files should be set up in a directory named `Sim_results` to work with the `simulations.ipynb` notebook.
