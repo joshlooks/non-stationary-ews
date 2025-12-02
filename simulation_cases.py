@@ -83,6 +83,8 @@ N = int(sys.argv[3])  # Total population
 gamma = 1/14  # Recovery rate (1/gamma is the infectious period)
 mu = 0.00003424657  # Birth and death rate
 
+from scipy.stats import truncnorm
+
 if sim_type == 'high':
     initial_susceptible = 0.4*N
     initial_infected = 0.005*N
@@ -125,9 +127,21 @@ elif sim_type == 'lownorm':
     initial_susceptible, initial_infected, initial_recovered = np.maximum([1,1,0],np.round(np.random.multivariate_normal(N*np.array([0.9,0.1,0]),cov)))
     beta_0 = 0.06
     R_0 = 0.06/(gamma+mu)
+elif sim_type == 'hightnorm':
+    var = sys.argv[4]
+    if var == 'low':
+        scale = np.sqrt(N*0.1)
+    elif var == 'med':
+        scale = np.sqrt(N*0.2)
+    elif var == 'high':
+        scale = np.sqrt(N*0.3)
+    initial_infected = np.round(truncnorm(a=(10 - 50) / scale, b=(N - 50) / scale, loc=50, scale=scale).rvs())
+    initial_susceptible = np.round(truncnorm(a=(1 - 50) / scale, b=(N - 50) / scale, loc=4000, scale=scale).rvs())
+    initial_recovered = np.round(truncnorm(a=(1 - 50) / scale, b=(N - 50) / scale, loc=5950, scale=scale).rvs())
+    R_0 = 4
+    beta_0 = R_0*(gamma+mu)
 
 max_time = 250
-sim_type = sys.argv[2]
 script_dir = os.path.dirname(__file__)
 betat = lambda x: beta_0
 

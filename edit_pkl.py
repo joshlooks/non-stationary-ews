@@ -9,7 +9,8 @@ num_sims = 100
 days = np.linspace(0, 250, 251)
 
 #root_dirs = ["low", "high", "highrand", "lowrand"]
-top_dirs = ["highnorm","lownorm"]
+top_dirs = ["hightnorm"]
+#top_dirs = [d for d in os.listdir(".") if os.path.isdir(d)]
 
 for top in top_dirs:
     print(f'beginning directory {top}',flush=True)
